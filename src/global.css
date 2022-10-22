@@ -36,3 +36,15 @@ body, input, textarea, button{
     font-weight: 400;
     font-size: 1.6rem;
 }
+
+@media (max-width:768px){
+    :root{
+        font-size: 55%;
+    }
+}
+
+@media (max-width:425px){
+    :root{
+        font-size: 50%;
+    }
+}
