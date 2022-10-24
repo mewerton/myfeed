@@ -1,22 +1,61 @@
 import { format, formatDistanceToNow } from 'date-fns'
 import ptBR from 'date-fns/locale/pt-BR'
+import { useState } from 'react'
 
 import { Avatar } from './Avatar'
 import { Comment } from './Comment'
+
 import styles from './Post.module.css'
+
+
 
 export function Post({ author, publishedAt, content }){
 
-        const publishedDateFormatted = format(publishedAt,"d 'de' LLL 'às' HH:mm'h'", {
-            locale: ptBR,
-        // trabalhando o formato da data ao passar o mouse por cima
+    const [comments, setComments] = useState([
+        'Post muito bacana, não é?'
+    ])
+        
+    const [newCommentText, setNewCommentText] = useState('')
+
+    const publishedDateFormatted = format(publishedAt,"d 'de' LLL 'às' HH:mm'h'", {
+        locale: ptBR,
+    // trabalhando o formato da data ao passar o mouse por cima
+    })
+
+    const publishedDateRelativeToNow = formatDistanceToNow(publishedAt,{
+        locale: ptBR,
+        addSuffix: true, //adicionando prefixo no TIME
+    // trabalhando no método que será mostrado o TIME em tela
+    })
+
+    function handleCreateNewComment(){
+     // usando handle no inicio de funções que está sendo disparada através de uma ação do usuário, um click no botão.
+         event.preventDefault()
+
+        setComments([...comments, newCommentText])
+        setNewCommentText('')
+    }
+
+    function handleNewCommentChange(){
+        event.target.setCustomValidity('')
+        setNewCommentText(event.target.value)
+    }
+
+    function handleNewCommentInvalid(){
+        event.target.setCustomValidity("Esse campo é obrigatório!")
+    }
+
+    function deleteComment(commentToDelete){
+        //criando um novo valor, ou seja, um novo espaço na memória, e não atualizando.
+       
+        const commentsWithoutDeleteOne = comments.filter(comment =>{
+            return comment != commentToDelete
         })
 
-        const publishedDateRelativeToNow = formatDistanceToNow(publishedAt,{
-            locale: ptBR,
-            addSuffix: true, //adicionando prefixo no TIME
-        // trabalhando no método que será mostrado o TIME em tela
-        })
+        setComments(commentsWithoutDeleteOne)
+    }
+
+    const isNewCommentEmpty = newCommentText.length == 0
 
     return(
         <article className={styles.post}>
@@ -37,29 +76,44 @@ export function Post({ author, publishedAt, content }){
            <div className={styles.content}>
                 {content.map(line =>{
                     if(line.type == 'paragraph'){
-                        return <p>{line.content}</p>
+                        return <p key={line.content}>{line.content}</p>
                     } else if(line.type == 'link'){
-                        return <p><a href='#'>{line.content}</a></p>
+                        return <p key={line.content}><a href='#'>{line.content}</a></p>
                     }
                 })}
            </div>
 
-           <form className={styles.commentForm}>
+           <form onSubmit={handleCreateNewComment} className={styles.commentForm}>
                 <strong>Deixe seu feedback</strong>
+                
                 <textarea 
+                name="comment"
                 placeholder='Deixe um comentário'
+                value={newCommentText}
+                onChange={handleNewCommentChange}
+                onInvalid={handleNewCommentInvalid}
+                required
+                
                 />
 
                 <footer>
-                    <button type='submit'>Publicar</button>
+                    <button type='submit' disabled={isNewCommentEmpty}>
+                        Publicar
+                    </button>
                 </footer>
                 
            </form>
 
            <div className={styles.commentList}>
-                <Comment/>
-                <Comment/>
-                <Comment/>
+               {comments.map(comment => {
+                    return (
+                        <Comment
+                            key={comment} 
+                            content={comment}
+                            onDeleteComment={deleteComment}
+                        />
+                    )
+               })}
            </div>
         </article>
     
